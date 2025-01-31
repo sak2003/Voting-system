@@ -1,0 +1,144 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Registration Page</title>
+  <link rel="stylesheet" type="text/css" href="../css/register.css">
+
+</head>
+
+<body>
+  <h1 align="center" style="color: azure;">Decentralized Voting Using Ethereum Blockchain</h1>
+  <div class="container mt-5">
+    <h1>Registration</h1>
+    <form id="Registrationform">
+      <div class="form-group">
+        <label for="voter-id"><h3>Voter ID</h3></label>
+        <input type="text" class="form-control" id="voter-id" name="voter-id" placeholder="Enter Voter id">
+      </div>
+    
+      <div class="form-group">
+        <label for="password"><h3>Create Password</h3></label>
+        <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+    
+      </div>
+      
+      <div>
+        <label for="fileInput">Choose a JPG File</label>
+        File input
+        <input type="file" id="fileInput" name="fileInput" accept=".jpg, .jpeg" required>      </div>
+      <button type="submit" onclick="location.href='login.html'" class="btn btn-primary"><b>submit</b></button>
+    
+    </form>
+    <script>
+        const form = document.getElementById('Registrationform');
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+    
+          // Get input values
+          const formData = {
+            voterId: document.getElementById('voter-id').value,
+            password: document.getElementById('password').value,
+            File:document.getElementById('fileInput').value
+          };
+    
+          try {
+            // Send the data to the backend
+            const response = await fetch('http://localhost:3000/submit', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(formData),
+            });
+    
+            const result = await response.json();
+            if (result.success) {
+              alert('Register successful!');
+              // Perform further actions (e.g., redirect to dashboard)
+            } else {
+              alert('Register failed: ' + result.message);
+            }
+          } catch (err) {
+            console.error('Error:', err);
+            alert('An error occurred while connecting to the server.');
+          }
+        });
+      </script>
+
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+  <script src="../js/login.js" type="module"></script>
+</body>
+
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Registration Page</title>
+  <link rel="stylesheet" type="text/css" href="../css/register.css">
+</head>
+
+<body>
+  <h1 align="center" style="color: azure;">Decentralized Voting Using Ethereum Blockchain</h1>
+  <div class="container mt-5">
+    <h1>Registration</h1>
+    <form id="Registrationform" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="voter-id"><h3>Voter ID</h3></label>
+        <input type="text" class="form-control" id="voter-id" name="voter-id" placeholder="Enter Voter ID" required>
+      </div>
+    
+      <div class="form-group">
+        <label for="password"><h3>Create Password</h3></label>
+        <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+      </div>
+      
+      <div>
+        <label for="fileInput">Choose a JPG File</label>
+        <input type="file" id="fileInput" name="fileInput" accept=".jpg, .jpeg" required>
+      </div>
+      <button type="submit" class="btn btn-primary"><b>Submit</b></button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('Registrationform');
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      // Create a FormData object to handle file uploads
+      const formData = new FormData();
+      formData.append('voterId', document.getElementById('voter-id').value);
+      formData.append('password', document.getElementById('password').value);
+      formData.append('fileInput', document.getElementById('fileInput').files[0]);
+
+      try {
+        // Send the data to the backend
+        const response = await fetch('http://localhost:3000/submit', {
+          method: 'POST',
+          body: formData, // Use FormData object
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          alert('Registration successful!');
+          window.location.href = "login.html"; // Redirect to login page
+        } else {
+          alert('Registration failed: ' + result.message);
+        }
+      } catch (err) {
+        console.error('Error:', err);
+        alert('An error occurred while connecting to the server.');
+      }
+    });
+  </script>
+</body>
+
+</html>
