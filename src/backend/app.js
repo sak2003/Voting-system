@@ -1,60 +1,68 @@
 const express = require("express");
+const app = express(); // ✅ THIS LINE creates the Express app
 const cors = require("cors");
 const { MongoClient } = require("mongodb");
 
-const app = express();
-const PORT = 3000;
-
-// Middleware
+// Enable CORS and JSON parsing
 app.use(cors());
-app.use(express.json()); // Parse JSON bodies sent by clients
+app.use(express.json()); // for JSON request bodies
 
-// MongoDB connection
-const uri = "mongodb://localhost:27017/"; // Default MongoDB URI
-const client = new MongoClient(uri);
+const url = "mongodb://127.0.0.1:27017";
+const client = new MongoClient(url);
+const dbName = "Voting-sys";
 
-let db;
+async function connectToMongoDB() {
+  try {
+    await client.connect();
+    console.log("Connected successfully to MongoDB");
+    const db = client.db(dbName);
 
-// Connect to MongoDB
-async function connectToDatabase() {
-    try {
-        await client.connect();
-        db = client.db("Voting-sys"); // Use the correct database name
-        console.log("Connected to MongoDB");
-    } catch (err) {
-        console.error("Error connecting to MongoDB:", err);
-        process.exit(1); // Exit if connection fails
+    // 👉 Route inside MongoDB connection to ensure db is available
+    app.post("/register", async (req, res) => {
+      const { voterId, password } = req.body;
+
+      if (!voterId || !password) {
+        return res.status(400).json({ success: false, message: "Voter ID and Password are required." });
+      }
+
+      const existingUser = await db.collection("users").findOne({ voterId });
+      if (existingUser) {
+        return res.status(400).json({ success: false, message: "Voter ID already registered." });
+      }
+
+      const result = await db.collection("users").insertOne({ voterId, password });
+      res.status(200).json({ success: true, message: "Registration successful!" });
+    });
+// 🔐 Login Route
+app.post("/login", async (req, res) => {
+    const { voterId, password } = req.body;
+  
+    if (!voterId || !password) {
+      return res.status(400).json({ success: false, message: "Voter ID and Password are required." });
     }
+  
+    const user = await db.collection("users").findOne({ voterId });
+  
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+  
+    if (user.password !== password) {
+      return res.status(401).json({ success: false, message: "Invalid password." });
+    }
+  
+    return res.status(200).json({ success: true, message: "Login successful!" });
+  });
+
+  
+    
+    // Start the server only after DB connection
+    app.listen(3000, () => {
+      console.log("Server is running on http://localhost:3000");
+    });
+  } catch (err) {
+    console.error("Error connecting to MongoDB:", err);
+  }
 }
-connectToDatabase();
 
-// API endpoint to handle login form submission
-app.post("/submit", async (req, res) => {
-    try {
-        const { voterId, password } = req.body;
-
-        // Validate input
-        if (!voterId || !password) {
-            return res.status(400).json({ success: false, message: "Voter ID and Password are required." });
-        }
-
-        // Insert data into 'login' collection
-        const result = await db.collection("login").insertOne({ voterId, password });
-        res.status(200).json({ success: true, message: `Data saved successfully with ID: ${result.insertedId}` });
-    } catch (err) {
-        console.error("Error saving data:", err);
-        res.status(500).json({ success: false, message: "Failed to save data." });
-    }
-});
-
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-});
-
-// Graceful shutdown
-process.on("SIGINT", async () => {
-    console.log("Closing MongoDB connection...");
-    await client.close();
-    process.exit(0);
-});
+connectToMongoDB();
